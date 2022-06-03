@@ -13,11 +13,12 @@ where
     data.windows(2).all(|w| w[0] <= w[1])
 }
 
-fn sort(vec: &mut Vec<u64>) -> &mut Vec<u64> {
+fn sort<'a>(vec: &'a mut Vec<u64>, shuffles: &mut u128) -> &'a mut Vec<u64> {
     let mut sorted: bool = false;
 
     while !sorted {
         vec.shuffle(&mut thread_rng());
+        *shuffles += 1;
         sorted = is_sorted(vec);
     }
 
@@ -40,14 +41,18 @@ fn main() {
 
     for size in sizes.iter() {
         vec = rand::thread_rng().sample_iter(&range).take(*size).collect();
+        let mut shuffles = 0;
         let start = Instant::now();
-        sort(&mut vec);
+        sort(&mut vec, &mut shuffles);
         if debug {
             for num in vec.iter() {
                 println!("{}", num);
             }
         }
         let duration = start.elapsed();
-        println!("Running with {} elements: {:?}", size, duration);
+        println!(
+            "Running with {} elements took: {:?} and {} shuffles",
+            size, duration, shuffles
+        );
     }
 }
